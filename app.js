@@ -12,10 +12,14 @@ const TTetromino = [[1, width, width + 1, width + 2], [1, width + 1, width + 2, 
 
 const Tetrominos = [OTetromino, ITetromino, STetromino, Ztetromino, LTetromino, JTetromino, TTetromino];
 
+const materials = ["url('img/o.png')","url('img/i.png')","url('img/s.png')","url('img/z.png')","url('img/l.png')","url('img/j.png')","url('img/t.png')"];
+
+
 let currentPos = 4;
 let currentRotation = 0;
 let currentTetromino = getRandom()
 var current = Tetrominos[currentTetromino][currentRotation];
+let score = 0;
 
 function getRandom() {
     return Math.floor(Math.random() * 7);
@@ -24,12 +28,15 @@ function getRandom() {
 function draw() {
     current.forEach(index => {
         squares[currentPos + index].classList.add("tetromino");
+        squares[currentPos + index].style.backgroundImage = materials[currentTetromino];
+        squares[currentPos + index].style.backgroundSize = "cover";
     })
 }
 
 function undraw() {
     current.forEach(index => {
         squares[currentPos + index].classList.remove("tetromino");
+        squares[currentPos + index].style.backgroundImage = "";
     })
 }
 
@@ -37,6 +44,7 @@ function freeze() {
     // down
     if (current.some(index => squares[currentPos + index + width].classList.contains("taken"))) {
         current.forEach(index => squares[currentPos + index].classList.add("taken"));
+        addScore();
         currentTetromino = getRandom();
         currentRotation = 0;
         current = Tetrominos[currentTetromino][currentRotation];
@@ -75,6 +83,13 @@ function rotate(e) {
     undraw();
     currentRotation = (currentRotation + 1) % 4
     current = Tetrominos[currentTetromino][currentRotation];
+
+    // const floor = currentPos-(currentPos%width)
+    // if (current.every(index => ((currentPos+index)-floor) > width)) {
+    //     console.log(currentPos, floor);
+    //     currentRotation = (currentRotation - 1) % 4
+    //     current = Tetrominos[currentTetromino][currentRotation];
+    // }
     draw();
 }
 
@@ -92,6 +107,25 @@ function takeAction(e) {
         case 40:
             moveDown();
             break;
+    }
+}
+
+function addScore() {
+    for (let i = 0; i < 200; i += width) {
+        const row = [i, i + 1, i + 2, i + 3, i + 4, i + 5, i + 6, i + 7, i + 8, i + 9];
+        if (row.every(index => squares[index].classList.contains("taken"))) {
+            row.forEach(index => {
+                squares[index].classList.remove("tetromino");
+                squares[index].classList.remove("taken");
+                squares[index].style.backgroundImage = "";
+            }
+            );
+            score += 10;
+            document.getElementById("score").innerText = `Score: ${score}`;
+            const squaresRemoved = squares.splice(i, width)
+            squares = squaresRemoved.concat(squares)
+            squares.forEach(cell => grid.appendChild(cell))
+        }
     }
 }
 
